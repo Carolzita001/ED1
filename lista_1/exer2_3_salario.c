@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <locale.h>
 
-// Estrutura de registro
 struct registro {
     char nome[20];
     double salario;
@@ -9,10 +8,9 @@ struct registro {
     char sexo;
 };
 
-// Função para adicionar o salário
 struct registro adicionaSalario(struct registro r) {
     printf("Insira o seu salário atual: ");
-    scanf("%lf", &r.salario); // Corrigido para usar %lf para double e passar o endereço
+    scanf("%lf", &r.salario);
     return r;
 }
 
@@ -21,13 +19,10 @@ int main() {
 
     struct registro meuRegistro;
 
-    // Inicializando o registro
     meuRegistro.salario = 0.0;
 
-    // Chamando a função para preencher o salário
     meuRegistro = adicionaSalario(meuRegistro);
 
-    // Verificando o salário
     if (meuRegistro.salario >= 5000) {
         printf("Salário Alto!\n");
     } else {

@@ -3,7 +3,6 @@
 
 #define MAX_ALUNOS 100
 
-// Estrutura para armazenar informações do aluno
 struct aluno {
     char nome[80];
     char matricula[8];
