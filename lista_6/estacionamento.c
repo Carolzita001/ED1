@@ -20,7 +20,6 @@ void iniciar(Fila *fila) {
 
 int vazia(Fila *fila) {
     if (fila->ultimo < fila->primeiro) {
-        printf("\n[Vazia!]\n");
         return 1;
     } else return 0;
 }
@@ -35,19 +34,27 @@ void enfileirar(Fila *fila, Carro c) {
 }
 
 void desenfileirar(Fila *fila, Carro *c) {
-    if (!vazia(fila)) {
+    if (vazia(fila) == 1) {
+        printf("\n[Vazia!]\n");
+    }else
+    {
         *c = fila->itens[fila->primeiro];
         fila->primeiro++;
-        printf("\nCarro %d saiu do estacionamento!\n", c->cod_iden);
+        printf("\nCarro %d fez um movimento!\n", c->cod_iden);
     }
+    
 }
 
 void exibir(Fila *fila) {
-    if (!vazia(fila)) {
+    if (vazia(fila) == 1) {
+        printf("\n[Vazia!]\n");
+    }else
+    {
         for (int i = fila->primeiro; i <= fila->ultimo; i++) {
             printf("\nCarro: %d Manobras: %d\n", fila->itens[i].cod_iden, fila->itens[i].contador);
         }
     }
+    
 }
 
 void reiniciarFila(Fila *fila) {
@@ -74,7 +81,8 @@ int main() {
         {
             case 1:
                 if (fila.ultimo < TAM - 1) {
-                    printf("Insira o código identificador do carro:\n");
+                    printf("\nEstacionamento de no máximo %d carros!\n", TAM);
+                    printf("\nInsira o código identificador do carro:\n");
                     scanf("%d", &(c.cod_iden));
                     c.contador = 0; // Inicializa o contador de manobras
                     enfileirar(&fila, c);
@@ -83,6 +91,7 @@ int main() {
                 }
             break;
             case 2:
+                exibir(&fila);
                 printf("\nQual carro deseja desenfileirar?\n");
                 scanf("%d", &carro);
 
@@ -94,12 +103,20 @@ int main() {
                         // Carro encontrado, remove da fila
                         desenfileirar(&fila, &c_aux);
                         printf("\nCarro %d removido do estacionamento!\n", c_aux.cod_iden);
+                        printf("\n------Fila de estacionados------:\n");
+                        exibir(&fila);
+                        printf("\n------Fila de espera------:\n");
+                        exibir(&aux);
                         encontrado = 1;
                     } else {
                         // Carro não é o procurado, move para a fila auxiliar
                         desenfileirar(&fila, &c_aux);
+                        printf("\n------Fila de estacionados------:\n");
+                        exibir(&fila);
                         c_aux.contador++; // Incrementa o número de manobras
                         enfileirar(&aux, c_aux);
+                        printf("\n------Fila de espera------:\n");
+                        exibir(&aux);
                     }
                 }
 
@@ -108,12 +125,19 @@ int main() {
                 }
 
                 // Retorna os carros da fila auxiliar para a fila principal
+                printf("\nEnfileirando os carros no estacionamento!\n");
                 while (!vazia(&aux)) {
                     desenfileirar(&aux, &c_aux);
+                    c_aux.contador++; // Incrementa o número de manobras
                     enfileirar(&fila, c_aux);
                 }
 
-                reiniciarFila(&aux); // Reinicia a fila auxiliar
+                printf("\n------Fila de estacionados------:\n");
+                exibir(&fila);
+
+                // Reinicia a fila auxiliar
+                reiniciarFila(&aux);
+
                 break;
 
             default:
