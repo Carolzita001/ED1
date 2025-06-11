@@ -1,14 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <locale.h>
+#include <string.h>
 
 typedef struct ITEM
 {
-    int item;
+    char nome[100];
+    int matricula;
     struct ITEM *proximo;
 } *tipoLista;
 
-tipoLista criarItem(int valor)
+tipoLista criarItem(char nome[], int matricula)
 {
     tipoLista novoItem = (tipoLista)malloc(sizeof(tipoLista));
     if (novoItem == NULL)
@@ -18,15 +20,16 @@ tipoLista criarItem(int valor)
     }
     else
     {
-        novoItem->item = valor;
+        strcpy(novoItem->nome, nome);
+        novoItem->matricula = matricula;
         novoItem->proximo = NULL;
         return novoItem;
     }
 }
 
-tipoLista inserirEsquerda(int valor, tipoLista lista)
+tipoLista inserirEsquerda(char nome[], int matricula, tipoLista lista)
 {
-    tipoLista novoItem = criarItem(valor);
+    tipoLista novoItem = criarItem(nome, matricula);
     if (lista == NULL)
     {
         return novoItem;
@@ -38,9 +41,9 @@ tipoLista inserirEsquerda(int valor, tipoLista lista)
     }
 }
 
-tipoLista inserirDireita(int valor, tipoLista lista)
+tipoLista inserirDireita(char nome[], int matricula, tipoLista lista)
 {
-    tipoLista novoItem = criarItem(valor);
+    tipoLista novoItem = criarItem(nome, matricula);
     if (lista == NULL)
     {
         return novoItem;
@@ -59,15 +62,21 @@ tipoLista inserirDireita(int valor, tipoLista lista)
     }
 }
 
-tipoLista inserirMeio(int valor, tipoLista lista, int valorReferencia)
+tipoLista inserirMeio(char nome[], int matricula, tipoLista lista, char nomeReferencia[])
 {
-    tipoLista novoItem = criarItem(valor);
+    tipoLista novoItem = criarItem(nome, matricula);
 
     tipoLista noReferencia = lista;
 
-    while (noReferencia != NULL && noReferencia->item != valorReferencia)
+    while (noReferencia != NULL && strcmp(noReferencia->nome, nomeReferencia) != 0)
     {
         noReferencia = noReferencia->proximo;
+    }
+    if (noReferencia == NULL) {
+        // referência não encontrada, inserir no final
+        free(novoItem);
+        printf("Nome de referência não encontrado!\n");
+        return lista;
     }
     novoItem->proximo = noReferencia->proximo;
     noReferencia->proximo = novoItem;
@@ -115,17 +124,17 @@ tipoLista removerDireita(tipoLista lista)
             {
                 listaAuxiliar = listaAuxiliar->proximo;
             }
-            tipoLista itemDescartar;
-            itemDescartar = listaAuxiliar->proximo;
-            free(itemDescartar);
-            itemDescartar = NULL;
-            listaAuxiliar->proximo = NULL;
         }
+        tipoLista itemDescartar;
+        itemDescartar = listaAuxiliar->proximo;
+        free(itemDescartar);
+        itemDescartar = NULL;
+        listaAuxiliar->proximo = NULL;
     }
     return lista;
 }
 
-tipoLista removerMeio(tipoLista lista, int valorReferencia)
+tipoLista removerMeio(tipoLista lista, char nomeReferencia[])
 {
     if (lista == NULL)
     {
@@ -144,7 +153,7 @@ tipoLista removerMeio(tipoLista lista, int valorReferencia)
         }
         else
         {
-            while (noReferencia != NULL && noReferencia->item != valorReferencia)
+            while (noReferencia != NULL && strcmp(noReferencia->nome, nomeReferencia) != 0)
             {
                 noReferencia = noReferencia->proximo;
             }
@@ -170,10 +179,53 @@ void exibir(tipoLista lista)
         tipoLista listaAuxiliar = lista;
         while (listaAuxiliar != NULL)
         {
-            printf("[%d] ", listaAuxiliar->item);
+            printf("Nome: %s, Matrícula: %d\n", listaAuxiliar->nome, listaAuxiliar->matricula);
             listaAuxiliar = listaAuxiliar->proximo;
         }
     }
+}
+
+tipoLista ordenarLista(tipoLista lista)
+{
+    if (lista == NULL || lista->proximo == NULL)
+    {
+        return lista; // Lista vazia ou com apenas um elemento
+    }
+
+    tipoLista atual, proximo;
+    int trocou;
+
+    do
+    {
+        atual = lista;
+        trocou = 0;
+
+        while (atual->proximo != NULL)
+        {
+            proximo = atual->proximo;
+
+            if (strcmp(atual->nome, proximo->nome) > 0) // Comparação lexicográfica
+            {
+                // Troca os valores dos nós
+                char tempNome[100];
+                int tempMatricula;
+
+                strcpy(tempNome, atual->nome);
+                tempMatricula = atual->matricula;
+
+                strcpy(atual->nome, proximo->nome);
+                atual->matricula = proximo->matricula;
+
+                strcpy(proximo->nome, tempNome);
+                proximo->matricula = tempMatricula;
+
+                trocou = 1; // Indica que houve uma troca
+            }
+            atual = proximo;
+        }
+    } while (trocou);
+
+    return lista;
 }
 
 int main()
@@ -181,13 +233,13 @@ int main()
     setlocale(LC_ALL, "Portuguese_Brazil");
 
     int opcao = -1;
-    int valor = 0, valorReferencia = 0;
+    char nome[100], nomeReferencia[100];
+    int matricula = 0;
     tipoLista lista = NULL;
 
     while (opcao != 0)
     {
         exibir(lista);
-        valor = 0;
 
         printf("\nDIGITE 0 PARA SAIR\n");
         printf("1: Inserir no inicio\n");
@@ -196,31 +248,43 @@ int main()
         printf("4: Remover no inicio\n");
         printf("5: Remover no final\n");
         printf("6: Remover no meio\n");
-        /*printf("7: Exibir lista\n");*/
+        printf("7: Ordenar lista\n");
 
         scanf("%d", &opcao);
 
         switch (opcao)
         {
         case 1:
-            printf("Digite um valor\n");
-            scanf("%d", &valor);
-            lista = inserirEsquerda(valor, lista);
+            printf("Digite um nome\n");
+            scanf("%s", nome);
+            printf("Digite a matrícula\n");
+            scanf("%d", &matricula);
+            lista = inserirDireita(nome, matricula, lista);
             break;
 
         case 2:
-            printf("Digite um valor\n");
-            scanf("%d", &valor);
-            lista = inserirDireita(valor, lista);
+            printf("Digite um nome\n");
+            scanf("%s", nome);
+            printf("Digite a matrícula\n");
+            scanf("%d", &matricula);
+            lista = inserirEsquerda(nome, matricula, lista);
             break;
         case 3:
-            printf("Insira o valor para servir como refer�ncia para adicionar o novo valor:\n");
-            scanf("%d", &valorReferencia);
+            printf("Insira o nome para servir como referência para adicionar o novo valor:\n");
+            scanf("%s", nomeReferencia);
 
-            printf("Digite um valor\n");
-            scanf("%d", &valor);
+            printf("Digite um nome\n");
+            scanf("%s", nome);
+            printf("Digite a matrícula\n");
+            scanf("%d", &matricula);
 
-            inserirMeio(valor, lista, valorReferencia);
+            lista = inserirMeio(nome, matricula, lista, nomeReferencia);
+            break;
+            scanf("%s", nome);
+            printf("Digite a matrícula\n");
+            scanf("%d", &matricula);
+
+            inserirMeio(nomeReferencia, matricula, lista, nomeReferencia);
             break;
         case 4:
             lista = removerEsquerda(lista);
@@ -231,14 +295,13 @@ int main()
             break;
 
         case 6:
-            printf("Insira o valor para servir como refer�ncia para remover o n�:\n");
-            scanf("%d", &valorReferencia);
-            lista = removerMeio(lista, valorReferencia);
+            printf("Insira o nome para servir como referência para remover o nó:\n");
+            scanf("%s", nomeReferencia);
+            lista = removerMeio(lista, nomeReferencia);
             break;
-            /*
-            case 7:
-                exibir(lista);
-                break;*/
+        case 7:
+            lista = ordenarLista(lista);
+            break;
 
         default:
             printf("Opcao invalida!\n");

@@ -158,6 +158,48 @@ tipoLista removerMeio(tipoLista lista, int valorReferencia)
     }
 }
 
+void MoveMenor(tipoLista* lista) {
+    if (*lista == NULL || (*lista)->proximo == NULL) {
+        // Lista vazia ou com apenas um elemento, nada a fazer
+        return;
+    }
+
+    tipoLista menor = *lista;
+    tipoLista atual = *lista;
+
+    // Encontrar o menor elemento na lista
+    while (atual != NULL) {
+        if (atual->item < menor->item) {
+            menor = atual;
+        }
+        atual = atual->proximo;
+    }
+
+    // Verificar se o menor já está no início
+    if (menor == *lista) {
+        return;
+    }
+
+    // Desconectar o menor nó de sua posição atual
+    if (menor->anterior != NULL) {
+        menor->anterior->proximo = menor->proximo;
+    }
+    if (menor->proximo != NULL) {
+        menor->proximo->anterior = menor->anterior;
+    }
+
+    // Conectar o menor nó no início da lista
+    menor->proximo = *lista;
+    menor->anterior = NULL;
+
+    if (*lista != NULL) {
+        (*lista)->anterior = menor;
+    }
+
+    // Atualizar o ponteiro da lista
+    *lista = menor;
+}
+
 void exibir(tipoLista lista)
 {
     printf("\n---Lista atual---\n");
@@ -196,7 +238,7 @@ int main()
         printf("4: Remover no inicio\n");
         printf("5: Remover no final\n");
         printf("6: Remover no meio\n");
-        /*printf("7: Exibir lista\n");*/
+        printf("7: Mover o menor item da lista\n");
 
         scanf("%d", &opcao);
 
@@ -235,10 +277,9 @@ int main()
             scanf("%d", &valorReferencia);
             lista = removerMeio(lista, valorReferencia);
             break;
-            /*
-            case 7:
-                exibir(lista);
-                break;*/
+        case 7:
+            MoveMenor(&lista);
+            break;
 
         default:
             printf("Opcao invalida!\n");

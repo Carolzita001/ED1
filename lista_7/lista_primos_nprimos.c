@@ -1,58 +1,63 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <locale.h>
+#include <math.h>
 
-typedef struct ITEM{
+typedef struct ITEM
+{
     int item;
-    struct ITEM *anterior;
     struct ITEM *proximo;
-}*tipoLista;
+} *tipoLista;
 
-tipoLista criarItem(int valor){
+tipoLista criarItem(int valor)
+{
     tipoLista novoItem = (tipoLista)malloc(sizeof(tipoLista));
     if (novoItem == NULL)
     {
         printf("\nErro!");
         return NULL;
-    }else{
+    }
+    else
+    {
         novoItem->item = valor;
         novoItem->proximo = NULL;
-        novoItem->anterior = NULL;
         return novoItem;
     }
 }
 
-tipoLista inserirEsquerda(int valor, tipoLista lista){
+tipoLista inserirEsquerda(int valor, tipoLista lista)
+{
     tipoLista novoItem = criarItem(valor);
     if (lista == NULL)
     {
         return novoItem;
-    }else
+    }
+    else
     {
-        lista->anterior = novoItem;
         novoItem->proximo = lista;
         return novoItem;
     }
 }
 
-tipoLista inserirDireita(int valor, tipoLista lista){
+tipoLista inserirDireita(int valor, tipoLista lista)
+{
     tipoLista novoItem = criarItem(valor);
     if (lista == NULL)
     {
         return novoItem;
-    }else
+    }
+    else
     {
         tipoLista listaAuxiliar = lista;
-        while (listaAuxiliar->proximo!=NULL)
+        while (listaAuxiliar->proximo != NULL)
         {
             listaAuxiliar = listaAuxiliar->proximo;
         }
 
         listaAuxiliar->proximo = novoItem;
-        novoItem->anterior = listaAuxiliar;
         novoItem->proximo = NULL;
         return lista;
-    } 
+    }
 }
 
 tipoLista inserirMeio(int valor, tipoLista lista, int valorReferencia)
@@ -65,63 +70,58 @@ tipoLista inserirMeio(int valor, tipoLista lista, int valorReferencia)
     {
         noReferencia = noReferencia->proximo;
     }
-    noReferencia->proximo->anterior = novoItem;
-    novoItem->anterior = noReferencia;
     novoItem->proximo = noReferencia->proximo;
     noReferencia->proximo = novoItem;
 
     return lista;
 }
 
-tipoLista removerEsquerda(tipoLista lista){
-    if (lista==NULL)
+tipoLista removerEsquerda(tipoLista lista)
+{
+    if (lista == NULL)
     {
         printf("Lista vazia!\n");
         return NULL;
-    }else
-    {  
-        tipoLista noRemover = lista;
-        if (noRemover->proximo == NULL)
-        {
-            free(noRemover);
-            noRemover = NULL;
-        }else
-        {
-            
-            lista = lista->proximo;
-            lista->anterior = NULL;
-        }  
-        free(noRemover);
-        noRemover = NULL;
+    }
+    else
+    {
+        tipoLista listaAuxiliar;
+        listaAuxiliar = lista;
+        lista = lista->proximo;
+        free(listaAuxiliar);
+        listaAuxiliar = NULL;
     }
     return lista;
 }
 
-tipoLista removerDireita(tipoLista lista){
-    if (lista==NULL)
+tipoLista removerDireita(tipoLista lista)
+{
+    if (lista == NULL)
     {
         printf("Lista vazia!\n");
-    }else
-    {   
-        if (lista->proximo==NULL)
+    }
+    else
+    {
+        tipoLista listaAuxiliar;
+        listaAuxiliar = lista;
+
+        if (lista->proximo == NULL)
         {
             free(lista);
-            return NULL;
-        }else
+            lista = NULL;
+        }
+        else
         {
-            tipoLista listaAuxiliar = lista;
-            while (listaAuxiliar->proximo->proximo!=NULL)
+            while (listaAuxiliar->proximo->proximo != NULL)
             {
                 listaAuxiliar = listaAuxiliar->proximo;
             }
-        
-            tipoLista noRemover = listaAuxiliar->proximo;
-            noRemover->anterior = NULL;
-            listaAuxiliar->proximo = NULL;
-
-            free(noRemover);
-            noRemover = NULL;
-            }
+        }
+        tipoLista itemDescartar;
+        itemDescartar = listaAuxiliar->proximo;
+        free(itemDescartar);
+        itemDescartar = NULL;
+        listaAuxiliar->proximo = NULL;
     }
     return lista;
 }
@@ -135,6 +135,8 @@ tipoLista removerMeio(tipoLista lista, int valorReferencia)
     }
     else
     {
+        tipoLista noReferencia = lista;
+
         if (lista->proximo == NULL)
         {
             free(lista);
@@ -143,24 +145,59 @@ tipoLista removerMeio(tipoLista lista, int valorReferencia)
         }
         else
         {
-            tipoLista noReferencia = lista;
-            while (noReferencia->proximo != NULL && noReferencia->item != valorReferencia)
+            while (noReferencia != NULL && noReferencia->item != valorReferencia)
             {
                 noReferencia = noReferencia->proximo;
             }
-            noReferencia->proximo->anterior = noReferencia->anterior;
-            noReferencia->anterior->proximo = noReferencia->proximo;
-            free(noReferencia);
-            noReferencia = NULL;
+            tipoLista itemDescartar = noReferencia->proximo;
+            noReferencia->proximo = itemDescartar->proximo;
+            free(itemDescartar);
+            itemDescartar = NULL;
 
             return lista;
         }
     }
 }
 
+int ehPrimo(int n){
+    if(n<=1){
+        return 0;
+    }
+
+    for (int i = 2; i <= sqrt(n); i++)// sqrt calcula a raíz quadrada do número
+    {
+        if (n % i == 0)
+        {
+            return 0;
+        }
+    }
+    
+    return 1;
+}
+
+void realocaPrimo(tipoLista lista, tipoLista *listaPrimos, tipoLista *listaNprimos){
+    if (lista == NULL)
+    {
+        printf("Lista vazia!\n");
+    }else
+    {
+        tipoLista aux = lista;
+        while (aux != NULL)
+        {
+            if (ehPrimo(aux->item))
+            {
+                *listaPrimos = inserirDireita(aux->item, *listaPrimos);
+            }else
+            {
+                *listaNprimos = inserirDireita(aux->item, *listaNprimos);
+            }
+            aux = aux->proximo;
+        }
+    }
+}
+
 void exibir(tipoLista lista)
 {
-    printf("\n---Lista atual---\n");
     if (lista == NULL)
     {
         printf("\nVazia!\n");
@@ -182,11 +219,16 @@ int main()
 
     int opcao = -1;
     int valor = 0, valorReferencia = 0;
-    tipoLista lista = NULL;
+    tipoLista lista = NULL, listaPrimos = NULL, listaNprimos = NULL;
 
     while (opcao != 0)
     {
+        printf("\n---Lista---\n");
         exibir(lista);
+        printf("\n---Lista Primos---\n");
+        exibir(listaPrimos);
+        printf("\n---Lista Nao Primos---\n");
+        exibir(listaNprimos);
         valor = 0;
 
         printf("\nDIGITE 0 PARA SAIR\n");
@@ -196,7 +238,7 @@ int main()
         printf("4: Remover no inicio\n");
         printf("5: Remover no final\n");
         printf("6: Remover no meio\n");
-        /*printf("7: Exibir lista\n");*/
+        printf("7: Separar primos de nao primos\n");
 
         scanf("%d", &opcao);
 
@@ -214,7 +256,7 @@ int main()
             lista = inserirDireita(valor, lista);
             break;
         case 3:
-            printf("Insira o valor para servir como referência para adicionar o novo valor:\n");
+            printf("Insira o valor para servir como refer�ncia para adicionar o novo valor:\n");
             scanf("%d", &valorReferencia);
 
             printf("Digite um valor\n");
@@ -231,14 +273,13 @@ int main()
             break;
 
         case 6:
-            printf("Insira o valor para remover no meio:\n");
+            printf("Insira o valor para servir como refer�ncia para remover o n�:\n");
             scanf("%d", &valorReferencia);
             lista = removerMeio(lista, valorReferencia);
             break;
-            /*
-            case 7:
-                exibir(lista);
-                break;*/
+        case 7:
+            realocaPrimo(lista, &listaPrimos, &listaNprimos);
+            break;
 
         default:
             printf("Opcao invalida!\n");

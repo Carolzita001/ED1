@@ -2,11 +2,20 @@
 #include <stdlib.h>
 #include <locale.h>
 
+#define TAM 3
+
 typedef struct ITEM
 {
     int item;
     struct ITEM *proximo;
 } *tipoLista;
+
+typedef struct ITEM_ESTATICO
+{
+    int vetor[TAM];
+    int primeiro;
+    int ultimo;
+} tipoListaEstatica;
 
 tipoLista criarItem(int valor)
 {
@@ -24,6 +33,22 @@ tipoLista criarItem(int valor)
     }
 }
 
+void iniciar(tipoListaEstatica *lista)
+{
+    lista->primeiro = 0;
+    lista->ultimo = -1;
+}
+
+int cheia(tipoListaEstatica *lista)
+{
+    return lista->ultimo == TAM - 1;
+}
+
+int vazia(tipoListaEstatica *lista)
+{
+    return lista->primeiro > lista->ultimo;
+}
+
 tipoLista inserirEsquerda(int valor, tipoLista lista)
 {
     tipoLista novoItem = criarItem(valor);
@@ -35,6 +60,23 @@ tipoLista inserirEsquerda(int valor, tipoLista lista)
     {
         novoItem->proximo = lista;
         return novoItem;
+    }
+}
+
+void inserirComeco(tipoListaEstatica *lista, int valor)
+{
+    if (cheia(lista))
+    {
+        printf("\nLista cheia!\n");
+    }
+    /*else if (lista->ultimo > -1)
+    {
+        printf("\nNao ha espaco no inicio do vetor!\n");
+    }*/
+    else
+    {
+        lista->primeiro--;
+        lista->vetor[lista->primeiro] = valor;
     }
 }
 
@@ -59,20 +101,17 @@ tipoLista inserirDireita(int valor, tipoLista lista)
     }
 }
 
-tipoLista inserirMeio(int valor, tipoLista lista, int valorReferencia)
+void inserirFim(tipoListaEstatica *lista, int valor)
 {
-    tipoLista novoItem = criarItem(valor);
-
-    tipoLista noReferencia = lista;
-
-    while (noReferencia != NULL && noReferencia->item != valorReferencia)
+    if (cheia(lista))
     {
-        noReferencia = noReferencia->proximo;
+        printf("\nLista cheia!\n");
     }
-    novoItem->proximo = noReferencia->proximo;
-    noReferencia->proximo = novoItem;
-
-    return lista;
+    else
+    {
+        lista->ultimo++;
+        lista->vetor[lista->ultimo] = valor;
+    }
 }
 
 tipoLista removerEsquerda(tipoLista lista)
@@ -91,6 +130,18 @@ tipoLista removerEsquerda(tipoLista lista)
         listaAuxiliar = NULL;
     }
     return lista;
+}
+
+void removerComeco(tipoListaEstatica *lista)
+{
+    if (vazia(lista))
+    {
+        printf("\nLista vazia!\n");
+    }
+    else
+    {
+        lista->primeiro++;
+    }
 }
 
 tipoLista removerDireita(tipoLista lista)
@@ -115,52 +166,31 @@ tipoLista removerDireita(tipoLista lista)
             {
                 listaAuxiliar = listaAuxiliar->proximo;
             }
-            tipoLista itemDescartar;
-            itemDescartar = listaAuxiliar->proximo;
-            free(itemDescartar);
-            itemDescartar = NULL;
-            listaAuxiliar->proximo = NULL;
         }
+        tipoLista itemDescartar;
+        itemDescartar = listaAuxiliar->proximo;
+        free(itemDescartar);
+        itemDescartar = NULL;
+        listaAuxiliar->proximo = NULL;
     }
     return lista;
 }
 
-tipoLista removerMeio(tipoLista lista, int valorReferencia)
+void removerFim(tipoListaEstatica *lista)
 {
-    if (lista == NULL)
+    if (vazia(lista))
     {
-        printf("Lista vazia!\n");
-        return NULL;
+        printf("\nLista vazia!\n");
     }
     else
     {
-        tipoLista noReferencia = lista;
-
-        if (lista->proximo == NULL)
-        {
-            free(lista);
-            lista = NULL;
-            return lista;
-        }
-        else
-        {
-            while (noReferencia != NULL && noReferencia->item != valorReferencia)
-            {
-                noReferencia = noReferencia->proximo;
-            }
-            tipoLista itemDescartar = noReferencia->proximo;
-            noReferencia->proximo = itemDescartar->proximo;
-            free(itemDescartar);
-            itemDescartar = NULL;
-
-            return lista;
-        }
+        lista->ultimo--;
     }
 }
 
 void exibir(tipoLista lista)
 {
-    printf("\n---Lista atual---\n");
+    printf("\n---Lista Dinamica---\n");
     if (lista == NULL)
     {
         printf("\nVazia!\n");
@@ -176,27 +206,52 @@ void exibir(tipoLista lista)
     }
 }
 
+void exibirEstatica(tipoListaEstatica *lista)
+{
+    int i = lista->primeiro;
+    printf("\n---Lista Estatica---\n");
+    if (vazia(lista))
+    {
+        printf("\nVazia!\n");
+    }
+    else
+    {
+        while (i <= lista->ultimo)
+        {
+            printf("[%d] ", lista->vetor[i]);
+            i++;
+        }
+    }
+}
+
 int main()
 {
     setlocale(LC_ALL, "Portuguese_Brazil");
 
     int opcao = -1;
-    int valor = 0, valorReferencia = 0;
+    int valor = 0;
     tipoLista lista = NULL;
+    tipoListaEstatica listaEstatica;
+    iniciar(&listaEstatica);
 
     while (opcao != 0)
     {
-        exibir(lista);
         valor = 0;
 
+        exibir(lista);
+        exibirEstatica(&listaEstatica);
+
+        printf("\n---Menu---\n");
+
         printf("\nDIGITE 0 PARA SAIR\n");
-        printf("1: Inserir no inicio\n");
-        printf("2: Inserir no final\n");
-        printf("3: Inserir no meio\n");
-        printf("4: Remover no inicio\n");
-        printf("5: Remover no final\n");
-        printf("6: Remover no meio\n");
-        /*printf("7: Exibir lista\n");*/
+        printf("1: Inserir no inicio da lista dinamica\n");
+        printf("2: Inserir no final da lista dinamica\n");
+        printf("3: Remover no inicio da lista dinamica\n");
+        printf("4: Remover no final da lista dinamica\n");
+        printf("5: Inserir no inicio da lista estatica\n");
+        printf("6: Inserir no final da lista estatica\n");
+        printf("7: Remover no inicio da lista estatica\n");
+        printf("8: Remover no final da lista estatica\n");
 
         scanf("%d", &opcao);
 
@@ -214,31 +269,30 @@ int main()
             lista = inserirDireita(valor, lista);
             break;
         case 3:
-            printf("Insira o valor para servir como refer�ncia para adicionar o novo valor:\n");
-            scanf("%d", &valorReferencia);
-
-            printf("Digite um valor\n");
-            scanf("%d", &valor);
-
-            inserirMeio(valor, lista, valorReferencia);
-            break;
-        case 4:
             lista = removerEsquerda(lista);
             break;
 
-        case 5:
+        case 4:
             lista = removerDireita(lista);
             break;
-
-        case 6:
-            printf("Insira o valor para servir como refer�ncia para remover o n�:\n");
-            scanf("%d", &valorReferencia);
-            lista = removerMeio(lista, valorReferencia);
+        case 5:
+            printf("Insira ate %d valores\n", TAM);
+            printf("Digite um valor\n");
+            scanf("%d", &valor);
+            inserirComeco(&listaEstatica, valor);
             break;
-            /*
-            case 7:
-                exibir(lista);
-                break;*/
+        case 6:
+            printf("Insira ate %d valores\n", TAM);
+            printf("Digite um valor\n");
+            scanf("%d", &valor);
+            inserirFim(&listaEstatica, valor);
+            break;
+        case 7:
+            removerComeco(&listaEstatica);
+            break;
+        case 8:
+            removerFim(&listaEstatica);
+            break;
 
         default:
             printf("Opcao invalida!\n");
